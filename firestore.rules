@@ -1,0 +1,181 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net: Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Global Security Primitives & Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'krishnakantupadhyay65@gmail.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Entity Validation Helpers
+    function isValidUserProfile(data) {
+      return data.userId is string &&
+             data.userId == request.auth.uid &&
+             data.email is string &&
+             data.email.size() <= 150;
+    }
+
+    // Health check endpoint
+    match /test/{docId} {
+      allow read: if true;
+    }
+
+    // Farmer Profile Collection
+    match /users/{userId} {
+      allow get: if (isOwner(userId) || isAdmin()) && isValidId(userId);
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming());
+      allow update: if (isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming()) && incoming().userId == existing().userId) || isAdmin();
+      allow delete: if (isOwner(userId) || isAdmin()) && isValidId(userId);
+    }
+
+    // Farm Parcels Collection
+    match /farms/{farmId} {
+      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin()) && isValidId(farmId);
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(farmId) && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(farmId) && (existing().userId == request.auth.uid || isAdmin()) && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && isValidId(farmId) && (existing().userId == request.auth.uid || isAdmin());
+    }
+
+    // Crop Cultivation Plans
+    match /crop_plans/{planId} {
+      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin()) && isValidId(planId);
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(planId) && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(planId) && (existing().userId == request.auth.uid || isAdmin()) && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && isValidId(planId) && (existing().userId == request.auth.uid || isAdmin());
+    }
+
+    // Farm Activities & Tasks
+    match /farm_activities/{activityId} {
+      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin()) && isValidId(activityId);
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(activityId) && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(activityId) && (existing().userId == request.auth.uid || isAdmin()) && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && isValidId(activityId) && (existing().userId == request.auth.uid || isAdmin());
+    }
+
+    // Soil Health Tests
+    match /soil_tests/{testId} {
+      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin()) && isValidId(testId);
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(testId) && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(testId) && (existing().userId == request.auth.uid || isAdmin()) && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && isValidId(testId) && (existing().userId == request.auth.uid || isAdmin());
+    }
+
+    // Crop Recommendations Collection
+    match /crop_recommendations/{recommendationId} {
+      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin()) && isValidId(recommendationId);
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(recommendationId) && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(recommendationId) && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin()) && isValidId(recommendationId);
+    }
+
+    // Plant Disease Analyses Collection
+    match /disease_analyses/{analysisId} {
+      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin()) && isValidId(analysisId);
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(analysisId) && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(analysisId) && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin()) && isValidId(analysisId);
+    }
+
+    // Farming Assistant Conversations Collection
+    match /conversations/{conversationId} {
+      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin()) && isValidId(conversationId);
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(conversationId) && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(conversationId) && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin()) && isValidId(conversationId);
+
+      match /messages/{messageId} {
+        allow read, write: if isSignedIn() && get(/databases/$(database)/documents/conversations/$(conversationId)).data.userId == request.auth.uid;
+      }
+    }
+
+    // Expert Consultations Queue
+    match /consultations/{consultationId} {
+      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin()) && isValidId(consultationId);
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(consultationId) && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(consultationId) && (existing().userId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && isValidId(consultationId) && (existing().userId == request.auth.uid || isAdmin());
+    }
+
+    // Community Discussion Posts
+    match /community_posts/{postId} {
+      allow get: if isSignedIn() && isValidId(postId) && (existing().status != 'hidden' || existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(postId) && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(postId) && (existing().userId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && isValidId(postId) && (existing().userId == request.auth.uid || isAdmin());
+    }
+
+    // Community Discussion Comments
+    match /community_comments/{commentId} {
+      allow get: if isSignedIn() && isValidId(commentId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(commentId) && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(commentId) && (existing().userId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && isValidId(commentId) && (existing().userId == request.auth.uid || isAdmin());
+    }
+
+    // Saved Resources / Bookmarks
+    match /saved_resources/{resourceId} {
+      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin()) && isValidId(resourceId);
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(resourceId) && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(resourceId) && incoming().userId == existing().userId;
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin()) && isValidId(resourceId);
+    }
+
+    // Product & Input Order Inquiries
+    match /orders/{orderId} {
+      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin()) && isValidId(orderId);
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(orderId) && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(orderId) && (existing().userId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && isValidId(orderId) && isAdmin();
+    }
+
+    // In-App Notifications
+    match /in_app_notifications/{notificationId} {
+      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin()) && isValidId(notificationId);
+      allow list: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(notificationId);
+      allow update: if isSignedIn() && isValidId(notificationId) && (existing().userId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && isValidId(notificationId) && (existing().userId == request.auth.uid || isAdmin());
+    }
+  }
+}

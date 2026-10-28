@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Production build outputs
+dist/
+build/
+
+# Local Environment Variables & Secrets
+.env*
+!.env.example
+
+# Local Data Snapshots & Recovery Backups
+.data/
+
+# Local Firebase Configuration / Artifacts
+firebase-applet-config.json
+
+# Scratch / Local test and debug scripts
+scratch/
+
+# Logs & Caches
+*.log
+.DS_Store
+coverage/

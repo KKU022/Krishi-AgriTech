@@ -1,0 +1,8 @@
+{
+  "name": "AgriTech",
+  "description": "Mobile-first digital farming platform for Indian farmers featuring crop recommendations, disease analysis, weather advisories, and an AI farming assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

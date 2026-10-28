@@ -1,0 +1,320 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Farmer profile containing regional, soil, and operational farm data.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "fullName": { "type": "string" },
+        "language": { "type": "string", "enum": ["en", "hi"] },
+        "state": { "type": "string" },
+        "district": { "type": "string" },
+        "activeFarmId": { "type": "string" },
+        "landArea": { "type": "number" },
+        "landAreaUnit": { "type": "string", "enum": ["acres", "hectares"] },
+        "soilType": { "type": "string" },
+        "waterSource": { "type": "string" },
+        "farmingInterests": { "type": "array" },
+        "onboardingCompleted": { "type": "boolean" },
+        "onboardingStep": { "type": "number" },
+        "role": { "type": "string", "enum": ["farmer", "admin"] },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "email"]
+    },
+    "Farm": {
+      "title": "Farm",
+      "description": "Individual agricultural landholding or plot owned by a farmer.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "state": { "type": "string" },
+        "district": { "type": "string" },
+        "size": { "type": "number" },
+        "sizeUnit": { "type": "string", "enum": ["acres", "hectares"] },
+        "soilType": { "type": "string" },
+        "waterSource": { "type": "string" },
+        "primaryCrops": { "type": "array" },
+        "isDefault": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "name", "state", "district", "size", "soilType", "waterSource"]
+    },
+    "CropPlan": {
+      "title": "CropPlan",
+      "description": "Seasonal cultivation schedule and lifecycle tracking for a specific farm.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "farmId": { "type": "string" },
+        "cropName": { "type": "string" },
+        "variety": { "type": "string" },
+        "season": { "type": "string", "enum": ["Kharif", "Rabi", "Zaid"] },
+        "sowingDate": { "type": "string" },
+        "expectedHarvestDate": { "type": "string" },
+        "status": { "type": "string", "enum": ["planned", "sown", "growing", "harvested", "cancelled"] },
+        "targetYieldQuintals": { "type": "number" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "farmId", "cropName", "season", "sowingDate", "status"]
+    },
+    "FarmActivity": {
+      "title": "FarmActivity",
+      "description": "Farm operation record such as irrigation, sowing, or pest management.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "farmId": { "type": "string" },
+        "cropPlanId": { "type": "string" },
+        "type": { "type": "string" },
+        "title": { "type": "string" },
+        "date": { "type": "string" },
+        "cost": { "type": "number" },
+        "notes": { "type": "string" },
+        "completed": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "farmId", "type", "title", "date"]
+    },
+    "SoilTest": {
+      "title": "SoilTest",
+      "description": "Soil testing record distinguishing official lab cards from manual field observations.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "farmId": { "type": "string" },
+        "date": { "type": "string" },
+        "isLabTest": { "type": "boolean" },
+        "labName": { "type": "string" },
+        "sampleDepthCm": { "type": "number" },
+        "ph": { "type": "number" },
+        "nitrogen": { "type": "number" },
+        "nitrogenLevel": { "type": "string", "enum": ["low", "medium", "high"] },
+        "phosphorus": { "type": "number" },
+        "phosphorusLevel": { "type": "string", "enum": ["low", "medium", "high"] },
+        "potassium": { "type": "number" },
+        "potassiumLevel": { "type": "string", "enum": ["low", "medium", "high"] },
+        "organicCarbonPercent": { "type": "number" },
+        "electricalConductivity": { "type": "number" },
+        "recommendations": { "type": "array" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "farmId", "date", "isLabTest", "ph"]
+    },
+    "CropRecommendation": {
+      "title": "CropRecommendation",
+      "description": "Deterministic rule-based crop ranking output and factual Gemini briefing.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "inputs": { "type": "object" },
+        "rankedCrops": { "type": "array" },
+        "geminiExplanation": { "type": "string" },
+        "matchedRulesSummary": { "type": "array" }
+      },
+      "required": ["id", "userId", "timestamp", "inputs", "rankedCrops"]
+    },
+    "DiseaseAnalysis": {
+      "title": "DiseaseAnalysis",
+      "description": "Privacy-sanitized plant pathology analysis result without raw image storage.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "cropHint": { "type": "string" },
+        "notes": { "type": "string" },
+        "result": { "type": "object" }
+      },
+      "required": ["id", "userId", "timestamp", "result"]
+    },
+    "Conversation": {
+      "title": "Conversation",
+      "description": "Bilingual AI farming assistant chat thread owned by a farmer.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "messages": { "type": "array" }
+      },
+      "required": ["id", "userId", "title", "messages"]
+    },
+    "Consultation": {
+      "title": "Consultation",
+      "description": "Agronomist and KVK expert guidance inquiry queue request.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "farmerName": { "type": "string" },
+        "farmerPhone": { "type": "string" },
+        "state": { "type": "string" },
+        "district": { "type": "string" },
+        "crop": { "type": "string" },
+        "category": { "type": "string" },
+        "question": { "type": "string" },
+        "urgency": { "type": "string", "enum": ["routine", "urgent", "critical"] },
+        "status": { "type": "string", "enum": ["submitted", "under_review", "resolved"] },
+        "expertResponse": { "type": "string" },
+        "respondedAt": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "farmerName", "state", "crop", "category", "question", "status"]
+    },
+    "CommunityPost": {
+      "title": "CommunityPost",
+      "description": "Farmer community knowledge sharing and peer discussion item.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "state": { "type": "string" },
+        "cropTag": { "type": "string" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "upvotes": { "type": "number" },
+        "commentCount": { "type": "number" },
+        "reportCount": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "flagged", "hidden"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "authorName", "title", "body", "status", "createdAt"]
+    },
+    "CommunityComment": {
+      "title": "CommunityComment",
+      "description": "Comment or reply on a community post.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "postId": { "type": "string" },
+        "userId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "body": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "postId", "userId", "authorName", "body", "createdAt"]
+    },
+    "SavedResource": {
+      "title": "SavedResource",
+      "description": "Bookmarked official agricultural schemes, portal links, and guides.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "resourceId": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "officialUrl": { "type": "string" },
+        "savedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "resourceId", "title", "officialUrl"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Agricultural inputs and testing kit inquiry order.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "farmerName": { "type": "string" },
+        "items": { "type": "array" },
+        "totalAmount": { "type": "number" },
+        "deliveryAddress": { "type": "string" },
+        "phone": { "type": "string" },
+        "paymentMode": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending_confirmation", "processing", "shipped", "delivered", "cancelled"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "farmerName", "items", "totalAmount", "deliveryAddress", "phone", "status"]
+    },
+    "InAppNotification": {
+      "title": "InAppNotification",
+      "description": "Farmer alert for weather advisories, order updates, or consultations.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "title", "message", "read", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile document accessible only by owner or administrator."
+    },
+    "/farms/{farmId}": {
+      "schema": "Farm",
+      "description": "Farm parcels owned by specific farmer."
+    },
+    "/crop_plans/{planId}": {
+      "schema": "CropPlan",
+      "description": "Seasonal cultivation plans for a farm."
+    },
+    "/farm_activities/{activityId}": {
+      "schema": "FarmActivity",
+      "description": "Farm activities and task records."
+    },
+    "/soil_tests/{testId}": {
+      "schema": "SoilTest",
+      "description": "Soil health tests and field observations."
+    },
+    "/crop_recommendations/{recommendationId}": {
+      "schema": "CropRecommendation",
+      "description": "Crop recommendation records owned by specific user."
+    },
+    "/disease_analyses/{analysisId}": {
+      "schema": "DiseaseAnalysis",
+      "description": "Plant disease analysis records owned by specific user."
+    },
+    "/conversations/{conversationId}": {
+      "schema": "Conversation",
+      "description": "Advisory chat threads owned by specific user."
+    },
+    "/consultations/{consultationId}": {
+      "schema": "Consultation",
+      "description": "Expert advisory consultation requests and resolutions."
+    },
+    "/community_posts/{postId}": {
+      "schema": "CommunityPost",
+      "description": "Community discussion posts viewable by signed-in farmers."
+    },
+    "/community_comments/{commentId}": {
+      "schema": "CommunityComment",
+      "description": "Comments on community discussion posts."
+    },
+    "/saved_resources/{resourceId}": {
+      "schema": "SavedResource",
+      "description": "Bookmarked official government schemes and guides."
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Agricultural inputs inquiry order records."
+    },
+    "/in_app_notifications/{notificationId}": {
+      "schema": "InAppNotification",
+      "description": "Farmer notifications and weather alerts."
+    }
+  }
+}
